@@ -103,7 +103,7 @@ def scrape_forum_table(i):
     return data
 
 
-@stub.function(concurrency_limit=200, timeout=86400)
+@stub.function(concurrency_limit=400, timeout=86400)
 def scrape_conversation(obj):
     time.sleep(7)
     html_page = requests.get(obj['link'], stream=True)
@@ -164,9 +164,9 @@ def scrape_conversation(obj):
     except AttributeError:
         last_comment_page = 1
 
-    for i in range(1, int(last_comment_page)):
+    for i in range(0, int(last_comment_page)):
         time.sleep(5)
-        comment_url = obj['link'] + f'/p{i}'
+        comment_url = obj['link'] + f'/p{i + 1}'
         comment_page = requests.get(comment_url)
         comment_soup = BeautifulSoup(comment_page.text, "html.parser")
 
@@ -193,8 +193,7 @@ def scrape_conversation(obj):
 
         try:
             comments_ul = comment_soup.find('ul', attrs={'class': 'MessageList DataList Comments pageBox'})
-            all_comments = comments_ul.find_all('li',
-                                                attrs={'class': 'Item ItemComment noPhotoWrap Role_Member pageBox'})
+            all_comments = comments_ul.find_all('li')
         except AttributeError:
             all_comments = []
 
@@ -221,16 +220,20 @@ def scrape_conversation(obj):
 
 
 def scrape_edmumds():
-    print(f"Scraping Edmunds...")
     data = []
-    ps = list(range(1, 420))
-    for result in scrape_forum_table.map(ps):
-        data.extend(result)
-
-    print("Scraping Conversations...")
     comment_data = []
-    for result in scrape_conversation.map(data):
-        comment_data.append(result)
+    ps = list(range(1, 420))
+
+    try:
+        print(f"Scraping Edmunds...")
+        for result in scrape_forum_table.map(ps):
+            data.extend(result)
+
+        print("Scraping Conversations...")
+        for result in scrape_conversation.map(data):
+            comment_data.append(result)
+    except KeyboardInterrupt:
+        pass
 
     print("Saving to GCP...")
     service_account_info = json.loads(os.environ["SERVICE_ACCOUNT_JSON"])

@@ -167,7 +167,7 @@ def scrape_conversation(obj):
     for i in range(0, int(last_comment_page)):
         time.sleep(5)
         comment_url = obj['link'] + f'/p{i + 1}'
-        comment_page = requests.get(comment_url)
+        comment_page = requests.get(comment_url, stream=True)
         comment_soup = BeautifulSoup(comment_page.text, "html.parser")
 
         # Save verified answers

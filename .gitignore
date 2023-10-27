@@ -1,1 +1,4 @@
 /.env
+/data/edmunds_forum.json
+/data/edmunds_forum_data.csv
+/data/edmunds_forum_data.csv.zip
